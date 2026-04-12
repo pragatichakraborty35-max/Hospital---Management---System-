@@ -1,0 +1,295 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+int login(){
+    char user[20], pass[20];
+    char saved_user[20], saved_pass[20];
+
+    printf("Set Username: ");
+    scanf("%s", saved_user);
+
+    printf("Set Password: ");
+    scanf("%s", saved_pass);
+
+    printf("\n--- Login ---\n");
+
+    printf("Enter Username: ");
+    scanf("%s", user);
+
+    printf("Enter Password: ");
+    scanf("%s", pass);
+
+    if(strcmp(user, saved_user)==0 && strcmp(pass, saved_pass)==0){
+        printf("Login Successful!\n");
+        return 1;
+    } else {
+        printf("Wrong login!\n");
+        return 0;
+    }
+}
+
+
+struct Doctor{
+	int doc_id;
+	char name[50];
+	char specialization[50];
+}d;
+
+
+void addDoc(){
+	FILE *fp;
+	fp=fopen("doctor.txt","a");
+	printf("Enter Doctor ID: ");
+	scanf("%d",&d.doc_id);
+	printf("Enter Doctor's name: ");
+	scanf("%s",d.name);
+	printf("Enter Specialization: ");
+	scanf("%s",d.specialization);
+	
+	fwrite(&d,sizeof(d),1,fp);
+	fclose(fp);
+	printf("Doctor added successfully!\n");
+}
+void viewDoc(){
+	FILE *fp=fopen("doctor.txt","r");
+	printf("\n--- List of Doctors ---\n");
+	while(fread(&d, sizeof(d),1,fp))
+	{
+		printf("\nID: %d",d.doc_id);
+		printf("\nName: %s", d.name);
+		printf("\nSpecialization: %s\n",d.specialization);
+	}
+	fclose(fp);
+}
+void searchDoc(){
+	FILE *fp=fopen("doctor.txt","r");
+	int id, found=0;
+	printf("Enter Doctor ID: ");
+	scanf("%d",&id);
+	while(fread(&d,sizeof(d),1,fp)){
+		if(d.doc_id==id){
+			printf("%d %s %s\n",d.doc_id,d.name,d.specialization);
+			found=1;
+		}
+	}
+	if(!found)
+		printf("Not found\n");
+	fclose(fp);
+}
+void delDoc(){
+	FILE *fp=fopen("doctor.txt","r");
+	FILE *temp=fopen("temp.txt","w");
+	int id;
+	printf("Enter Doctor ID: ");
+	scanf("%d",&id);
+	while(fread(&d,sizeof(d),1,fp)){
+		if(d.doc_id!=id)
+			fwrite(&d,sizeof(d),1,temp);
+	}
+	fclose(fp);fclose(temp);
+	remove("doctor.txt");
+	rename("temp.txt","doctor.txt");
+	printf("Deleted\n");
+}
+void updateDoc(){
+    FILE *fp = fopen("doctor.txt","r");
+    FILE *temp = fopen("temp.txt","w");
+
+    int id, found = 0;
+
+    printf("Enter Doctor ID: ");
+    scanf("%d",&id);
+
+    while(fread(&d,sizeof(d),1,fp)){
+        if(d.doc_id == id && found == 0){
+            printf("Enter new name: ");
+            scanf("%s", d.name);
+
+            printf("Enter specialization: ");
+            scanf("%s", d.specialization);
+
+            found = 1;   // mark as updated
+        }
+
+        fwrite(&d,sizeof(d),1,temp);
+    }
+
+    fclose(fp);
+    fclose(temp);
+
+    remove("doctor.txt");
+    rename("temp.txt","doctor.txt");
+
+    if(found)
+        printf("Record Updated Successfully!\n");
+    else
+        printf("Doctor not found!\n");
+}
+
+struct Patient{
+	int p_id;
+	char name[50];
+	int age;
+}p;
+
+void addPatient(){
+	FILE *fp=fopen("patient.txt","a");
+	printf("Enter Patient ID: ");
+	scanf("%d",&p.p_id);
+	printf("Enter patient's name: ");
+	scanf("%s",p.name);
+	printf("Enter age: ");
+	scanf("%d",&p.age);
+	fwrite(&p,sizeof(p),1,fp);
+	fclose(fp);
+}
+void viewPatient(){
+	FILE *fp=fopen("patient.txt","r");
+	printf("\nPatient List:\n");
+	while(fread(&p,sizeof(p),1,fp))
+	{
+		printf("%d %s %d\n",p.p_id,p.name,p.age);
+	}
+	fclose(fp);
+}
+
+struct Visit {
+    int p_id;
+    int doc_id;
+} v;
+void assignDoc() {
+    FILE *fp = fopen("visit.txt", "a");
+
+    printf("Enter Patient ID: ");
+    scanf("%d", &v.p_id);
+
+    printf("Enter Doctor ID: ");
+    scanf("%d", &v.doc_id);
+
+    fwrite(&v, sizeof(v), 1, fp);
+    fclose(fp);
+
+    printf("Assigned successfully\n");
+}
+void viewVisit() {
+    FILE *fpV = fopen("visit.txt", "r");
+    FILE *fpD = fopen("doctor.txt", "r");
+    FILE *fpP = fopen("patient.txt", "r");
+
+    printf("	\nDoctor - Patient List:\n");
+
+    while (fread(&v, sizeof(v), 1, fpV)) {
+
+        rewind(fpD);
+        while (fread(&d, sizeof(d), 1, fpD)) {
+            if (d.doc_id == v.doc_id) {
+
+                rewind(fpP);
+                while (fread(&p, sizeof(p), 1, fpP)) {
+                    if (p.p_id == v.p_id) {
+
+                        printf("Doctor: %s -> Patient: %s\n",
+                               d.name, p.name);
+                    }
+                }
+            }
+        }
+    }
+
+    fclose(fpV);
+    fclose(fpD);
+    fclose(fpP);
+}
+
+struct Bill{
+    int p_id;
+    float amount;
+} b;
+
+void addBill(){
+    FILE *fp = fopen("bill.txt","a");
+
+    printf("Enter Patient ID: ");
+    scanf("%d",&b.p_id);
+    printf("Enter Amount: ");
+    scanf("%f",&b.amount);
+
+    fwrite(&b,sizeof(b),1,fp);
+    fclose(fp);
+}
+
+void viewBill(){
+    FILE *fp = fopen("bill.txt","r");
+
+    while(fread(&b,sizeof(b),1,fp)){
+        printf("Patient %d -> %.2f\n", b.p_id, b.amount);
+    }
+    fclose(fp);
+}
+
+struct Room{
+    int p_id;
+    int room_no;
+} r;
+
+void assignRoom(){
+    FILE *fp = fopen("room.txt","a");
+
+    printf("Enter Patient ID: ");
+    scanf("%d",&r.p_id);
+    printf("Enter Room No: ");
+    scanf("%d",&r.room_no);
+
+    fwrite(&r,sizeof(r),1,fp);
+    fclose(fp);
+}
+
+void viewRoom(){
+    FILE *fp = fopen("room.txt","r");
+
+    while(fread(&r,sizeof(r),1,fp)){
+        printf("Patient %d -> Room %d\n", r.p_id, r.room_no);
+    }
+    fclose(fp);
+}
+
+
+
+int main(){
+
+    if(login()==0)
+        return 0;
+
+    int ch;
+
+    while(1){
+        printf("\n--- MENU ---\n");
+        printf("1.Add Doctor\n2.View Doctor\n3.Search Doctor\n4.Delete Doctor\n5.Update Doctor\n");
+        printf("6.Add Patient\n7.View Patient\n");
+        printf("8.Assign Doctor\n9.View Relation\n");
+        printf("10.Add Bill\n11.View Bill\n");
+        printf("12.Assign Room\n13.View Room\n");
+        printf("14.Exit\n");
+
+        printf("Enter choice: ");
+        scanf("%d",&ch);
+
+        switch(ch){
+            case 1: addDoc(); break;
+            case 2: viewDoc(); break;
+            case 3: searchDoc(); break;
+            case 4: delDoc(); break;
+            case 5: updateDoc(); break;
+            case 6: addPatient(); break;
+            case 7: viewPatient(); break;
+            case 8: assignDoc(); break;
+            case 9: viewVisit(); break;
+            case 10: addBill(); break;
+            case 11: viewBill(); break;
+            case 12: assignRoom(); break;
+            case 13: viewRoom(); break;
+            case 14: exit(0);
+            default: printf("Invalid choice\n");
+        }
+    }
+}
